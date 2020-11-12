@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'eieio)
+(require 'url-parse)
 
 (defvar package-build-recipes-dir)
 (defvar package-build-working-dir)
@@ -59,6 +60,19 @@
   (or (oref rcp url)
       (format (oref rcp url-format)
               (oref rcp repo))))
+
+(cl-defmethod package-recipe--upstream-protocol ((rcp package-recipe))
+  "Get the protocol used for fetching from the upstream specified in RCP.
+
+The three principal syntaxes are with an explicitly specified
+protocol, an scp-like one and a local file path."
+  (let ((url (package-recipe--upstream-url rcp)))
+    (cond
+     ((string-match "^\\([a-z]+\\)://" url)
+      (match-string 1 url))
+     ((string-match "^[^:/ ]+:" url)
+      "ssh")
+     (t "file"))))
 
 ;;;; Git
 
